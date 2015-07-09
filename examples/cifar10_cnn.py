@@ -29,7 +29,8 @@ nb_epoch = 200
 data_augmentation = True
 
 # the data, shuffled and split between tran and test sets
-(X_train, y_train), (X_test, y_test) = cifar10.load_data(test_split=0.1)
+(X_train, y_train), (X_test, y_test) = cifar10.load_data()
+print('X_train shape:', X_train.shape)
 print(X_train.shape[0], 'train samples')
 print(X_test.shape[0], 'test samples')
 
@@ -54,11 +55,11 @@ model.add(MaxPooling2D(poolsize=(2, 2)))
 model.add(Dropout(0.25))
 
 model.add(Flatten())
-model.add(Dense(64*8*8, 512, init='normal'))
+model.add(Dense(64*8*8, 512))
 model.add(Activation('relu'))
 model.add(Dropout(0.5))
 
-model.add(Dense(512, nb_classes, init='normal'))
+model.add(Dense(512, nb_classes))
 model.add(Activation('softmax'))
 
 # let's train the model using SGD + momentum (how original).
@@ -72,7 +73,7 @@ if not data_augmentation:
     X_test = X_test.astype("float32")
     X_train /= 255
     X_test /= 255
-    model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=10)
+    model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch)
     score = model.evaluate(X_test, Y_test, batch_size=batch_size)
     print('Test score:', score)
 
@@ -104,14 +105,14 @@ else:
         # batch train with realtime data augmentation
         progbar = generic_utils.Progbar(X_train.shape[0])
         for X_batch, Y_batch in datagen.flow(X_train, Y_train):
-            loss = model.train(X_batch, Y_batch)
+            loss = model.train_on_batch(X_batch, Y_batch)
             progbar.add(X_batch.shape[0], values=[("train loss", loss)])
 
         print("Testing...")
         # test time!
         progbar = generic_utils.Progbar(X_test.shape[0])
         for X_batch, Y_batch in datagen.flow(X_test, Y_test):
-            score = model.test(X_batch, Y_batch)
+            score = model.test_on_batch(X_batch, Y_batch)
             progbar.add(X_batch.shape[0], values=[("test loss", score)])
 
             
